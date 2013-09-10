@@ -4,6 +4,9 @@
 # v0.2
 #
 
+# example: perl massMulepasswordChanger.pl mules.txt output.txt
+
+
 use strict;
 use warnings;
 use threads;
@@ -16,11 +19,8 @@ die 'Please specify the output file as a command line argument.' if !defined $AR
 my $infile = $ARGV[0];
 my $outfile = $ARGV[1];
 
-# example: perl massMulepasswordChanger.pl mules.txt output.txt
-
 my $newPassword="";
 my $output="";
-
 
 open(INPUT,$infile) or die 'Can not open input file "mules.txt": ' . $! . "\n";
 while(<INPUT>){
