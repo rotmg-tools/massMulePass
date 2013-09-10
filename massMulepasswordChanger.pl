@@ -10,18 +10,35 @@ use threads;
 use Thread::Queue;
 my $q = Thread::Queue->new(); # A new empty queue
 
-die 'Please specify the new password as a command line argument.' if !defined $ARGV[0];
-my $newPassword=$ARGV[0];
+die 'Please specify the input file as a command line argument.' if !defined $ARGV[0];
+die 'Please specify the output file as a command line argument.' if !defined $ARGV[1];
 
-open(INPUT,'mules.txt') or die 'Can not open input file "mules.txt": ' . $! . "\n";
+my $infile = $ARGV[0];
+my $outfile = $ARGV[1];
+
+# example: perl massMulepasswordChanger.pl mules.txt output.txt
+
+my $newPassword="";
+my $output="";
+
+
+open(INPUT,$infile) or die 'Can not open input file "mules.txt": ' . $! . "\n";
 while(<INPUT>){
- chomp();
- my($guid,$password)=split(/\s+/,$_);
- $q->enqueue([$guid, $password, $newPassword]);
+  chomp();
+  my($guid,$password)=split(/\s+/,$_);
+  $newPassword = "";
+  my @letters = ('a'..'z');
+    for my $i (0..9) {
+    $newPassword .= $letters[int rand @letters];
+    }
+
+  $output .= '"' . $guid . '": "' . $newPassword . '",'. "\n";
+
+  $q->enqueue([$guid, $password, $newPassword]);
 }
 print $q->pending() . ' mules queued for processing.' . "\n";
 sleep 2;
-
+	
 sub start_thread {
  while(my $mule=$q->dequeue_nb()){
   # Format:
@@ -70,3 +87,11 @@ while(threads->list(threads::running)){
 foreach (threads->list(threads::joinable)){
  $_->join();
 }
+
+
+
+
+
+ open (MYFILE, ">$outfile") or die 'Can not open input file "output.txt": ' . $! . "\n";
+ print MYFILE $output;
+ close (MYFILE); 
