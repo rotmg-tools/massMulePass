@@ -34,7 +34,7 @@ while(<INPUT>){
     $newPassword .= $letters[int rand @letters];
     }
 
-  $output .= '"' . $guid . '": "' . $newPassword . '",'. "\n";
+  $output = '"' . $guid . '": "' . $newPassword . '",'. "\n";
 
   print MYFILE $output;
 
