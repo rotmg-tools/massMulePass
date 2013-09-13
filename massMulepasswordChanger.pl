@@ -22,6 +22,8 @@ my $outfile = $ARGV[1];
 my $newPassword="";
 my $output="";
 
+open (MYFILE, ">$outfile") or die 'Can not open input file "output.txt": ' . $! . "\n";
+
 open(INPUT,$infile) or die 'Can not open input file "mules.txt": ' . $! . "\n";
 while(<INPUT>){
   chomp();
@@ -33,6 +35,8 @@ while(<INPUT>){
     }
 
   $output .= '"' . $guid . '": "' . $newPassword . '",'. "\n";
+
+  print MYFILE $output;
 
   $q->enqueue([$guid, $password, $newPassword]);
 }
@@ -92,6 +96,6 @@ foreach (threads->list(threads::joinable)){
 
 
 
- open (MYFILE, ">$outfile") or die 'Can not open input file "output.txt": ' . $! . "\n";
- print MYFILE $output;
+
+ 
  close (MYFILE); 
