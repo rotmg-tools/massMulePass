@@ -1,11 +1,12 @@
 #!/usr/bin/perl -w
 #
-# mass mule password changer (c) supahacka@gmail.com
-# v0.2
+# mass mule register
+# based on mass mule password changer v0.2 (c) supahacka@gmail.com
+# 
 #
 
-# example: perl massMulepasswordChanger.pl mules.txt output.txt
-
+# perl massMuleRegister.pl foo%%%%%@example.com password 10
+# email, password, mule count
 
 use strict;
 use warnings;
@@ -13,51 +14,44 @@ use threads;
 use Thread::Queue;
 my $q = Thread::Queue->new(); # A new empty queue
 
-die 'Please specify the input file as a command line argument.' if !defined $ARGV[0];
-die 'Please specify the output file as a command line argument.' if !defined $ARGV[1];
+die 'Please specify the email pattern as a command line argument.' if !defined $ARGV[0];
+die 'Please specify the password as a command line argument.' if !defined $ARGV[1];
+die 'Please specify the number of mules pattern as a command line argument.' if !defined $ARGV[2];
+my $guid=$ARGV[0];
+my $newPassword=$ARGV[1];
+my $muleCount=$ARGV[2];
 
-my $infile = $ARGV[0];
-my $outfile = $ARGV[1];
 
-my $newPassword="";
-my $output="";
+my $outfile = "mules.txt";
 
-open (MYFILE, ">$outfile") or die 'Can not open input file "output.txt": ' . $! . "\n";
+open (MYFILE, ">$outfile") or die 'Can not open output file "mules.txt": ' . $! . "\n";
 
-open(INPUT,$infile) or die 'Can not open input file "mules.txt": ' . $! . "\n";
-while(<INPUT>){
-  chomp();
-  my($guid,$password)=split(/\s+/,$_);
-  $newPassword = "";
-  my @letters = ('a'..'z');
-    for my $i (0..9) {
-    $newPassword .= $letters[int rand @letters];
-    }
 
-  $output = '"' . $guid . '": "' . $newPassword . '",'. "\n";
 
-  print MYFILE $output;
+$q->enqueue([$guid, $newPassword]);
 
-  $q->enqueue([$guid, $password, $newPassword]);
-}
-print $q->pending() . ' mules queued for processing.' . "\n";
+
+
+print $q->pending() . ' mules queued for register.' . "\n";
 sleep 2;
-	
+
 sub start_thread {
  while(my $mule=$q->dequeue_nb()){
   # Format:
-  # POST https://realmofthemadgod.appspot.com/account/changePassword
+  # POST https://realmofthemadgod.appspot.com/account/register
   # URLEncoded form
   # guid:         foo@foo.org
   # ignore:       79341
   # newPassword:  futloch2
-  # password:     futloch
  
   my $content = [
- 	'guid' => $mule->[0],
+
+  'guid'=> 'DDDDDDDD30A5B289EA856859A8',
+ 	'newGUID' => $mule->[0],
  	'ignore' => int(rand(1000)+1000),
- 	'newPassword' => $mule->[2],
- 	'password' => $mule->[1],
+  
+ 	'newPassword' => $mule->[1],
+  'isAgeVerified' => 1,
   ];
  
   use LWP::UserAgent;
@@ -68,12 +62,14 @@ sub start_thread {
   my $timesTried=0;
   my $result=undef;
   while($retry==1){
-   my $req = POST 'http://realmofthemadgod.appspot.com/account/changePassword', $content;
+   my $req = POST 'http://realmofthemadgod.appspot.com/account/register', $content;
    my $res = $ua->request($req);
    $result=$res->decoded_content;
    $timesTried++;
    $retry=0 if ($result eq '<Success/>' || $timesTried>=2);
-   print 'Change password for mule ' . $mule->[0] . '/' . $mule->[1] . ' to ' . $mule->[2] . ' - result: ' . $result . ($timesTried>1 ? ' (retry #' . $timesTried .' )' : '') . "\n";
+
+   print 'register mule: ' . $mule->[0] . 'password: ' . $mule->[1] .' - result: ' . $result . ($timesTried>1 ? ' (retry #' . $timesTried .' )' : '') . "\n";
+
   }
  }
 }
@@ -92,10 +88,4 @@ foreach (threads->list(threads::joinable)){
  $_->join();
 }
 
-
-
-
-
-
- 
- close (MYFILE); 
+close (MYFILE); 
